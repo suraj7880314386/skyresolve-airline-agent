@@ -138,18 +138,7 @@ not as a data source.
    LLM call, for reproducibility in grading and to run with zero setup
    (see "AI tools used" for where an LLM was actually used).
 
-## 4. AI tools used
-
-| Tool | How it was used |
-|---|---|
-| Claude (Anthropic, this conversation) | Read the data pack and mandatory-output brief; designed the rules-engine architecture and escalation logic; wrote all HTML/CSS/JS for the prototype, this README, the architecture diagram, and the submission slide deck. |
-
-No other AI tools or external APIs are called by the running prototype —
-it is fully self-contained and works offline, which was a deliberate
-choice given the money/compensation stakes of the domain (see
-Architecture, above).
-
-## 5. Running it
+## 4. Running it
 
 **Option A — just open it:** double-click `index.html`, or drag it into
 a browser tab. That's the whole app.
@@ -165,7 +154,7 @@ python3 -m http.server 8000
 on the `main` branch — `index.html` at the repo root will serve directly,
 no build step required.
 
-## 6. Repository layout
+## 5. Repository layout
 
 ```
 skyresolve/
@@ -177,9 +166,3 @@ skyresolve/
     └── source-data.md       # data-pack facts transcribed for reference
 ```
 
-## 7. Demoing it (for the 15-minute walkthrough)
-
-Use the three "scripted scenario" chips at the top of the chat pane —
-each replays the exact wording from the data pack's three scenarios, so
-you can narrate the policy decision as it appears, then switch to the
-free-text box to show the agent handling a rephrased or novel ask live.
