@@ -7,7 +7,7 @@ of policies, while staying inside its authority and escalating anything it
 isn't allowed to approve.
 
 ## Quick Links
-- **Live Hosted Demo:** [Click here to try the Live App](https://skyresolve-airline-agent.vercel.app/)
+- **Live Hosted Demo:** [Click here to try the Live Website](https://skyresolve-airline-agent.vercel.app/)
 - **Video Walkthrough (Google Drive):** [Watch the Demo Video](https://drive.google.com/file/d/1uM078bNtO_dovyl_iUYBDTRWqFqGyuTV/view?usp=sharing)
 
 ---
