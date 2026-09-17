@@ -6,8 +6,9 @@ airline-disruption requests (cancellations and delays) against a fixed set
 of policies, while staying inside its authority and escalating anything it
 isn't allowed to approve.
 
-**Live prototype:** open `index.html` in any browser. (A hosted version : https://skyresolve-airline-agent.vercel.app/)
-DEMO VIDEO : https://drive.google.com/file/d/1uM078bNtO_dovyl_iUYBDTRWqFqGyuTV/view?usp=sharing
+## Quick Links
+- **Live Hosted Demo:** [Click here to try the Live App](https://skyresolve-airline-agent.vercel.app/)
+- **Video Walkthrough (Google Drive):** [Watch the Demo Video](https://drive.google.com/file/d/1uM078bNtO_dovyl_iUYBDTRWqFqGyuTV/view?usp=sharing)
 
 ---
 
