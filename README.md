@@ -6,9 +6,7 @@ airline-disruption requests (cancellations and delays) against a fixed set
 of policies, while staying inside its authority and escalating anything it
 isn't allowed to approve.
 
-**Live prototype:** open `index.html` in any browser — no build step, no
-server, no API key. (A hosted version is linked in the submission notes /
-demo video.)
+**Live prototype:** open `index.html` in any browser. (A hosted version is https://skyresolve-airline-agent.vercel.app/)
 
 ---
 
@@ -146,7 +144,7 @@ a browser tab. That's the whole app.
 **Option B — local static server (optional):**
 ```bash
 cd skyresolve
-python3 -m http.server 8000
+python -m http.server 8000
 # then open http://localhost:8000
 ```
 
