@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyResolve — Customer-Facing Resolution Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1B2D;
+    --panel:#16273F;
+    --panel-2:#1C3049;
+    --line:#2A3E58;
+    --text:#E8EDF4;
+    --muted:#8C9CB5;
+    --amber:#F2A93B;
+    --amber-dim:#8a6222;
+    --green:#4FA87A;
+    --red:#E4573D;
+    --radius:10px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(242,169,59,0.06), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;}
+  .display{font-family:'Space Grotesk', system-ui, sans-serif;}
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 28px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg, var(--amber), #c97e1f);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;color:#1a1200;font-family:'Space Grotesk',sans-serif;
+    font-size:16px;
+  }
+  .brand-text h1{font-family:'Space Grotesk',sans-serif;font-size:18px;margin:0;font-weight:600;letter-spacing:0.2px;}
+  .brand-text p{margin:0;font-size:12.5px;color:var(--muted);}
+  .board{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;color:var(--amber);
+    letter-spacing:0.5px;
+    padding:7px 12px;
+    border:1px solid var(--amber-dim);
+    border-radius:6px;
+    background:rgba(242,169,59,0.06);
+  }
+
+  .app{
+    display:grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    height:calc(100vh - 68px);
+    max-width:1400px;
+    margin:0 auto;
+  }
+  @media (max-width: 880px){
+    .app{grid-template-columns:1fr; height:auto;}
+  }
+
+  
+  .chat-col{display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0;}
+  .starter{
+    padding:16px 22px;border-bottom:1px solid var(--line);
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  }
+  .starter span{font-size:12px;color:var(--muted);margin-right:4px;}
+  .chip{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:7px 13px;
+    border-radius:20px;
+    font-size:12.5px;
+    cursor:pointer;
+    transition:border-color .15s, transform .1s;
+  }
+  .chip:hover{border-color:var(--amber);}
+  .chip:active{transform:scale(0.97);}
+  .chip.reset{color:var(--muted); border-style:dashed;}
+
+  .thread{flex:1;overflow-y:auto;padding:22px 22px 10px;display:flex;flex-direction:column;gap:14px;}
+  .msg{max-width:82%;padding:11px 15px;border-radius:14px;font-size:14.5px;line-height:1.5;}
+  .msg.agent{
+    align-self:flex-start;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-bottom-left-radius:4px;
+  }
+  .msg.user{
+    align-self:flex-end;
+    background:linear-gradient(135deg, #2c4468, #1f3554);
+    border:1px solid #345078;
+    border-bottom-right-radius:4px;
+  }
+  .msg.system{
+    align-self:center;
+    background:transparent;
+    border:1px dashed var(--line);
+    color:var(--muted);
+    font-size:12px;
+    font-family:'IBM Plex Mono',monospace;
+    padding:6px 12px;
+  }
+  .msg .tag{
+    display:inline-block;font-size:10px;letter-spacing:.4px;
+    font-family:'IBM Plex Mono',monospace;
+    padding:2px 6px;border-radius:4px;margin-bottom:6px;
+  }
+  .tag.ok{background:rgba(79,168,122,0.15);color:var(--green);}
+  .tag.esc{background:rgba(228,87,61,0.15);color:var(--red);}
+
+  .composer{
+    border-top:1px solid var(--line);
+    padding:14px 22px 18px;
+    display:flex;gap:10px;
+  }
+  .composer input{
+    flex:1;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:12px 14px;
+    border-radius:10px;
+    font-size:14px;
+    font-family:inherit;
+  }
+  .composer input:focus{outline:none;border-color:var(--amber);}
+  .composer button{
+    background:var(--amber);
+    color:#1a1200;
+    border:none;
+    padding:0 20px;
+    border-radius:10px;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .composer button:disabled{opacity:0.4;cursor:not-allowed;}
+
+  
+  .console{overflow-y:auto;padding:20px 22px 40px;display:flex;flex-direction:column;gap:16px;}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .card h3{
+    margin:0 0 12px;font-size:11.5px;letter-spacing:.6px;color:var(--muted);
+    font-family:'IBM Plex Mono',monospace;font-weight:500;text-transform:uppercase;
+  }
+  .empty-hint{color:var(--muted);font-size:13px;line-height:1.5;}
+
+  .id-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13.5px;}
+  .id-row .k{color:var(--muted);}
+  .id-row .v{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  .tier-pill{
+    display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .tier-Gold{background:rgba(242,169,59,.18);color:var(--amber);}
+  .tier-Silver{background:rgba(140,156,181,.18);color:#c3cfe0;}
+  .tier-Platinum{background:rgba(159,140,255,.18);color:#b6a6ff;}
+
+  .flight-status{
+    font-family:'IBM Plex Mono',monospace;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 14px;
+    margin-top:4px;
+    font-size:12.5px;
+  }
+  .flight-status .route{font-size:15px;font-weight:600;font-family:'Space Grotesk',sans-serif;margin-bottom:4px;}
+  .status-pill{
+    display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;margin-top:6px;
+  }
+  .status-cancelled{background:rgba(228,87,61,.18);color:var(--red);}
+  .status-delayed{background:rgba(242,169,59,.18);color:var(--amber);}
+  .status-unaffected{background:rgba(79,168,122,.18);color:var(--green);}
+
+  .log-entry{
+    border-left:2px solid var(--line);
+    padding:8px 0 8px 12px;
+    margin-bottom:2px;
+    font-size:12.5px;
+  }
+  .log-entry.completed{border-color:var(--green);}
+  .log-entry.escalated{border-color:var(--red);}
+  .log-entry .t{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:10.5px;}
+  .log-entry .a{margin:2px 0;}
+  .log-entry .p{color:var(--muted);font-size:11px;font-style:italic;}
+
+  .esc-banner{
+    background:rgba(228,87,61,.1);
+    border:1px solid rgba(228,87,61,.4);
+    color:#ffb4a4;
+    padding:10px 13px;border-radius:8px;font-size:12.5px;
+  }
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">SR</div>
+    <div class="brand-text">
+      <h1>SkyResolve</h1>
+      <p>Customer-facing resolution agent — airline disruption</p>
+    </div>
+  </div>
+  <div class="board" id="clock">WED 23 SEP 2026</div>
+</header>
+
+<div class="app">
+  <div class="chat-col">
+    <div class="starter">
+      <span>Try a scripted scenario:</span>
+      <div class="chip" data-scn="priya">Priya — cancelled flight + upgrade ask</div>
+      <div class="chip" data-scn="arvind">Arvind — delay + hotel ask</div>
+      <div class="chip" data-scn="meher">Meher — delay + fare-diff switch</div>
+      <div class="chip reset" id="resetBtn">↺ Reset session</div>
+    </div>
+    <div class="thread" id="thread"></div>
+    <div class="composer">
+      <input id="userInput" type="text" placeholder="Type as the customer… (start with your name or PNR)" autocomplete="off">
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="card" id="idCard">
+      <h3>Customer</h3>
+      <div class="empty-hint">No customer identified yet. The agent will look someone up once they share a name or booking reference.</div>
+    </div>
+    <div class="card" id="flightCard">
+      <h3>Flight status</h3>
+      <div class="empty-hint">Nothing to show yet.</div>
+    </div>
+    <div class="card" id="escCard" style="display:none;">
+      <h3>Escalation</h3>
+      <div class="esc-banner" id="escBanner"></div>
+    </div>
+    <div class="card" id="logCard">
+      <h3>Action &amp; conversation record</h3>
+      <div class="empty-hint" id="logEmpty">Actions the agent takes (or escalates) will be timestamped here.</div>
+      <div id="logList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const TODAY = "Wed 23 Sep 2026";
+
+const CUSTOMERS = {
+  "SK4821X": { name:"Priya Nair", tier:"Gold", email:"priya.nair@example.com", phone:"+91-98xxxxxxx1",
+    history:"6 flights in the last 12 months; 1 prior complaint (delayed baggage) resolved with a voucher." },
+  "TR1190B": { name:"Arvind Kulkarni", tier:"Silver", email:"arvind.kulkarni@example.com", phone:"+91-98xxxxxxx2",
+    history:"3 flights in the last 12 months; no prior complaints." },
+  "WL7742":  { name:"Meher Kaur", tier:"Platinum", email:"meher.kaur@example.com", phone:"+91-98xxxxxxx3",
+    history:"10 flights in the last 12 months; 1 prior complaint (overbooking) resolved with a tier-status upgrade." }
+};
+
+const BOOKINGS = {
+  "SK4821X": [
+    { flight:"SK-204", route:"Delhi → Goa", date:"Wed 23 Sep 2026", sched:"18:40", status:"cancelled", reason:"operational reasons" },
+    { flight:"Return", route:"Goa → Delhi", date:"Fri 25 Sep 2026", sched:"16:20", status:"unaffected" }
+  ],
+  "TR1190B": [
+    { flight:"SK-118", route:"Mumbai → Bengaluru", date:"Wed 23 Sep 2026", sched:"07:10", status:"delayed", delayHours:4, newDeparture:"11:10" }
+  ],
+  "WL7742": [
+    { flight:"SK-305", route:"Delhi → Hyderabad", date:"Wed 23 Sep 2026", sched:"14:00", status:"delayed", delayHours:6, newDeparture:"20:00" }
+  ]
+};
+
+const KNOWN_FARE_DIFF = { "WL7742": 2000 };
+
+
+let state = {
+  customer:null,     
+  booking:null,       
+  escalated:false,
+  log:[]
+};
+
+
+const thread = document.getElementById('thread');
+const logList = document.getElementById('logList');
+const logEmpty = document.getElementById('logEmpty');
+const idCard = document.getElementById('idCard');
+const flightCard = document.getElementById('flightCard');
+const escCard = document.getElementById('escCard');
+const escBanner = document.getElementById('escBanner');
+
+function addMsg(role, html, tag){
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  let inner = '';
+  if(tag) inner += `<span class="tag ${tag.cls}">${tag.label}</span><br>`;
+  inner += html;
+  d.innerHTML = inner;
+  thread.appendChild(d);
+  thread.scrollTop = thread.scrollHeight;
+}
+function addSystem(text){
+  const d = document.createElement('div');
+  d.className='msg system';
+  d.textContent = text;
+  thread.appendChild(d);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function logAction(action, outcome, policyRef){
+  const entry = { time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}), action, outcome, policyRef };
+  state.log.push(entry);
+  logEmpty.style.display = 'none';
+  const el = document.createElement('div');
+  el.className = 'log-entry ' + (outcome==='escalated' ? 'escalated' : 'completed');
+  el.innerHTML = `<div class="t">${entry.time} · ${outcome.toUpperCase()}</div>
+                   <div class="a">${action}</div>
+                   ${policyRef ? `<div class="p">${policyRef}</div>` : ''}`;
+  logList.appendChild(el);
+  logList.scrollTop = logList.scrollHeight;
+}
+
+function renderCustomerCard(pnr){
+  const c = CUSTOMERS[pnr];
+  idCard.innerHTML = `
+    <h3>Customer</h3>
+    <div class="id-row"><span class="k">Name</span><span class="v">${c.name}</span></div>
+    <div class="id-row"><span class="k">Tier</span><span class="v"><span class="tier-pill tier-${c.tier}">${c.tier}</span></span></div>
+    <div class="id-row"><span class="k">PNR</span><span class="v">${pnr}</span></div>
+    <div class="id-row"><span class="k">Contact</span><span class="v">${c.email}</span></div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5;">${c.history}</div>
+  `;
+}
+
+function statusPillClass(s){
+  if(s==='cancelled') return 'status-cancelled';
+  if(s==='delayed') return 'status-delayed';
+  return 'status-unaffected';
+}
+function renderFlightCard(pnr){
+  const bs = BOOKINGS[pnr];
+  flightCard.innerHTML = `<h3>Flight status</h3>` + bs.map(b=>{
+    let detail = '';
+    if(b.status==='cancelled') detail = `Cancelled — ${b.reason}`;
+    else if(b.status==='delayed') detail = `Delayed ${b.delayHours}h — new departure ${b.newDeparture}`;
+    else detail = `On schedule`;
+    return `<div class="flight-status">
+      <div class="route">${b.flight} · ${b.route}</div>
+      <div>${b.date} · sched ${b.sched}</div>
+      <span class="status-pill ${statusPillClass(b.status)}">${detail}</span>
+    </div>`;
+  }).join('');
+}
+
+function showEscalation(reason){
+  state.escalated = true;
+  escCard.style.display = 'block';
+  escBanner.innerHTML = `<strong>Escalated to a human agent.</strong><br>${reason}`;
+}
+
+
+function delayComp(hours){
+  if(hours > 5) return { text:"a ₹500 meal voucher, lounge access, and hotel accommodation covering the delayed hours", tier:3 };
+  if(hours > 3) return { text:"a ₹500 meal voucher and lounge access", tier:2 };
+  return { text:"a ₹500 meal voucher", tier:1 };
+}
+
+function findDisrupted(pnr){
+  return BOOKINGS[pnr].find(b => b.status==='cancelled' || b.status==='delayed');
+}
+
+function doRebook(pnr, b, first, lead){
+  const c = CUSTOMERS[pnr];
+  const priority = (c.tier==='Gold' || c.tier==='Platinum');
+  const priorityNote = priority ? ` — as a ${c.tier}-tier member you also get priority access to the next available seats` : '';
+  addMsg('agent', `${lead}I've rebooked you on the next available flight within 24 hours at no extra charge${priorityNote}. You'll get the new confirmation by email shortly.`);
+  logAction(`Rebooked ${first} (${pnr}) on next available flight within 24h at no charge${priority ? ' (priority rebooking — '+c.tier+' tier)' : ''}.`,
+    'completed', priority ? 'Cancellation Rebooking Rule + Loyalty Tier Rule (priority rebooking)' : 'Cancellation Rebooking Rule');
+}
+function doRefund(pnr, b, lead){
+  addMsg('agent', `${lead}I've initiated a full refund to your original payment method. It'll be processed within 7 business days.`);
+  logAction(`Initiated full refund to original payment method for cancelled ${b.flight}.`, 'completed', 'Refund Processing Rule');
+}
+
+function identify(text){
+  const t = text.toLowerCase();
+  for(const pnr of Object.keys(CUSTOMERS)){
+    if(t.includes(pnr.toLowerCase())) return pnr;
+  }
+  const nameMap = { "priya":"SK4821X", "nair":"SK4821X", "arvind":"TR1190B", "kulkarni":"TR1190B", "meher":"WL7742", "kaur":"WL7742" };
+  for(const key in nameMap){
+    if(t.includes(key)) return nameMap[key];
+  }
+  return null;
+}
+
+function greetAfterIdentify(pnr){
+  const c = CUSTOMERS[pnr];
+  const b = findDisrupted(pnr);
+  state.customer = pnr;
+  state.booking = b;
+  renderCustomerCard(pnr);
+  renderFlightCard(pnr);
+
+  if(!b){
+    addMsg('agent', `Thanks ${c.name.split(' ')[0]} — I've pulled up ${pnr}. I don't see any disruption on your bookings right now. Is there something specific I can help with?`);
+    return;
+  }
+  if(b.status==='cancelled'){
+    addMsg('agent',
+      `Thanks ${c.name.split(' ')[0]}, I've found your booking (${pnr}). I can see <strong>${b.flight}, ${b.route}</strong> on ${b.date} was <strong>cancelled due to ${b.reason}</strong>.
+       <br><br>You're entitled to a free rebooking on the next available flight within 24 hours, or a full refund to your original payment method — whichever you'd prefer. Which would you like?`);
+    logAction(`Presented cancellation entitlement to ${c.name} (${pnr}): free rebooking within 24h, or full refund.`, 'completed', 'Cancellation Rebooking Rule');
+  } else if(b.status==='delayed'){
+    const dc = delayComp(b.delayHours);
+    addMsg('agent',
+      `Thanks ${c.name.split(' ')[0]}, I've found your booking (${pnr}). <strong>${b.flight}, ${b.route}</strong> on ${b.date} is <strong>delayed ${b.delayHours} hours</strong> — new departure ${b.newDeparture}.
+       <br><br>Under our delay policy this qualifies you for ${dc.text}. I can apply that now — would you like me to go ahead, or is there something else you need?`);
+    logAction(`Determined delay compensation for ${pnr}: ${dc.text}.`, 'completed', 'Delay Compensation Rule');
+  }
+}
+
+
+function handleTurn(raw){
+  const text = raw.trim();
+  if(!text) return;
+  addMsg('user', escapeHtml(text));
+
+  if(!state.customer){
+    const pnr = identify(text);
+    if(pnr){ greetAfterIdentify(pnr); }
+    else {
+      addMsg('agent', `Happy to help. Could you share your name or booking reference (PNR) so I can pull up your flight details?`);
+    }
+    return;
+  }
+
+  const pnr = state.customer;
+  const c = CUSTOMERS[pnr];
+  const b = state.booking;
+  const t = text.toLowerCase();
+  const first = c.name.split(' ')[0];
+
+ 
+  const angry = /(furious|unacceptable|ridiculous|terrible|outrageous|fed up|sick of|worst)/.test(t);
+  const empathyPrefix = angry ? `I completely understand the frustration, and I'm sorry for the disruption. ` : ``;
+
+  if(/(legal action|lawyer|sue|court|consumer forum|formal complaint|take this further legally)/.test(t)){
+    addMsg('agent', `${empathyPrefix}I want to make sure this gets the right attention — I'm escalating this to our specialist support team right now, and they'll reach out to you directly.`, {cls:'esc', label:'ESCALATED'});
+    logAction(`Customer raised a legal threat / formal complaint.`, 'escalated', 'Prohibited action: threats of legal action must be escalated immediately.');
+    showEscalation('Customer indicated intent to pursue a formal complaint / legal action. Policy requires immediate escalation — the agent cannot handle this directly.');
+    return;
+  }
+
+  
+  if(/refund/.test(t) && /(different (card|account|method)|another (card|account)|paytm|different bank)/.test(t)){
+    addMsg('agent', `${empathyPrefix}Refunds can only be issued to the original payment method used for booking, so I'm not able to redirect this one. I'll flag it to a supervisor to see if there's an alternative for you.`, {cls:'esc', label:'ESCALATED'});
+    logAction(`Customer requested refund to a different payment method.`, 'escalated', 'Prohibited action: refunds may only go to the original payment method.');
+    showEscalation('Refund requested to a non-original payment method. Outside agent authority.');
+    return;
+  }
+
+ 
+  if(/(business class|free upgrade|upgrade.*free|for (the|my) trouble.*upgrade|upgrade.*for (the|my) trouble)/.test(t)){
+    addMsg('agent', `${empathyPrefix}A complimentary upgrade isn't something I have the authority to approve — that would need a supervisor's sign-off, so I'm escalating that specific request now.`, {cls:'esc', label:'ESCALATED'});
+    logAction(`Customer requested a free class upgrade as goodwill compensation.`, 'escalated', 'Prohibited action: compensation beyond stated policy amounts needs supervisor approval.');
+    showEscalation('Requested compensation (free upgrade) exceeds standard policy. Needs supervisor approval.');
+   
+    if(b && b.status==='cancelled'){
+      if(/(refund|cash|money back)/.test(t)) doRefund(pnr, b, `In the meantime — `);
+      else if(/(rebook|next available flight|another flight today)/.test(t)) doRebook(pnr, b, first, `In the meantime — `);
+    }
+    return;
+  }
+
+ 
+  if(/(hotel|accommodation)/.test(t) && /(full night|entire night|whole night|overnight stay|full stay)/.test(t)){
+    addMsg('agent', `${empathyPrefix}For a ${b && b.delayHours ? b.delayHours+'-hour' : ''} delay, our policy covers hotel accommodation only for the delayed-hours portion, not a full night's stay. I can arrange that partial coverage right away — a full-night stay would need supervisor approval, so I'm escalating that part for review.`, {cls:'esc', label:'ESCALATED'});
+    if(b && b.delayHours){
+      logAction(`Arranged hotel accommodation for the delayed-hours portion only (${b.delayHours}h) — not a full night.`, 'completed', 'Delay Compensation Rule (hotel covers delayed hours only)');
+    }
+    logAction(`Customer requested full-night hotel stay instead of delayed-hours-only coverage.`, 'escalated', 'Prohibited action: exceeds stated compensation (delayed-hours-only hotel rule).');
+    showEscalation('Requested full-night hotel stay exceeds the delayed-hours-only entitlement.');
+    return;
+  }
+
+  
+  if(/(hotel|accommodation)/.test(t)){
+    if(b && b.status==='delayed' && b.delayHours <= 5){
+      addMsg('agent', `${empathyPrefix}I hear you — a ${b.delayHours}-hour delay doesn't cross the 5-hour threshold our policy sets for hotel accommodation, so I'm not able to add that. What I can confirm is ${delayComp(b.delayHours).text}, which I'll apply now.`);
+      logAction(`Declined hotel accommodation — delay of ${b.delayHours}h is under the 5h policy threshold.`, 'completed', 'Delay Compensation Rule');
+    } else if(b && b.status==='delayed' && b.delayHours > 5){
+      addMsg('agent', `${empathyPrefix}Yes — since the delay is over 5 hours, you're covered for hotel accommodation for the delayed-hours portion, along with the meal voucher and lounge access. I'm applying all three now.`);
+      logAction(`Applied hotel accommodation (delayed-hours only), meal voucher and lounge access for ${b.delayHours}h delay.`, 'completed', 'Delay Compensation Rule');
+    } else {
+      addMsg('agent', `${empathyPrefix}I don't see a qualifying delay on this booking for hotel accommodation — could you clarify which flight you mean?`);
+    }
+    return;
+  }
+
+  
+  if(/(different flight|another flight|switch flight|move me to|earlier flight|change my flight)/.test(t)){
+    const diff = KNOWN_FARE_DIFF[pnr];
+    if(diff !== undefined){
+      const wantsWaive = /(waive|for free|no charge|without paying|free of cost)/.test(t);
+      if(wantsWaive && diff > 1500){
+        addMsg('agent', `${empathyPrefix}Moving you to that flight is possible, but it isn't airline-caused, so the ₹${diff} fare difference applies — and I don't have the authority to waive an amount over ₹1,500 without supervisor sign-off. I'm escalating the waiver request; I can still go ahead with the switch now if you're happy to pay the difference.`, {cls:'esc', label:'ESCALATED'});
+        logAction(`Customer asked to waive a ₹${diff} fare difference for a voluntary flight switch.`, 'escalated', 'Prohibited action: agents cannot waive fare differences above ₹1,500 without supervisor approval.');
+        showEscalation(`Requested waiver of a ₹${diff} fare difference exceeds agent authority (limit ₹1,500).`);
+      } else {
+        addMsg('agent', `${empathyPrefix}I can move you to that flight — since it's a voluntary change rather than something we caused, the fare difference of ₹${diff} would apply and isn't something I can waive. Would you like me to go ahead and process the switch with that difference charged?`);
+        logAction(`Quoted ₹${diff} fare difference for voluntary switch to a higher-fare flight; awaiting customer confirmation to charge.`, 'completed', 'Fare Difference Rule');
+      }
+    } else {
+      addMsg('agent', `${empathyPrefix}I can look at switching you to another flight — if it's a voluntary change rather than something we caused, any fare difference would apply. Let me know the flight you have in mind and I'll check the difference.`);
+    }
+    return;
+  }
+
+ 
+  if(/(rebook|next available flight|another flight today)/.test(t) && b && b.status==='cancelled'){
+    doRebook(pnr, b, first, `${empathyPrefix}Done — `);
+    return;
+  }
+
+  
+  if(/(refund|cash|money back)/.test(t)){
+    if(b && b.status==='cancelled'){
+      doRefund(pnr, b, `${empathyPrefix}Understood — `);
+    } else {
+      addMsg('agent', `${empathyPrefix}This flight wasn't cancelled, so a refund isn't available for it — but under our delay policy you are entitled to ${b?delayComp(b.delayHours).text:'the standard delay compensation'}. Would you like me to apply that?`);
+    }
+    return;
+  }
+
+  
+  if(/(compensation|voucher|lounge|meal)/.test(t) && b && b.status==='delayed'){
+    const dc = delayComp(b.delayHours);
+    addMsg('agent', `${empathyPrefix}For this ${b.delayHours}-hour delay you're entitled to ${dc.text}. I've applied it to your booking now.`);
+    logAction(`Applied delay compensation (${dc.text}) for ${b.delayHours}h delay.`, 'completed', 'Delay Compensation Rule');
+    return;
+  }
+
+ 
+  if(/(don'?t understand|what does that mean|confused|not clear|explain)/.test(t)){
+    addMsg('agent', `No problem, let me put it simply: ${b && b.status==='cancelled' ? "since the airline cancelled your flight, you can pick either a free seat on the next flight, or your money back." : b ? `since your flight is delayed ${b.delayHours} hours, our policy gives you ${delayComp(b.delayHours).text} automatically — no action needed from you beyond confirming.` : "let me know what you'd like help with and I'll walk you through it."}`);
+    return;
+  }
+
+  
+  addMsg('agent', `${empathyPrefix}Could you tell me a bit more about what you'd like me to do — rebook, refund, or check your compensation for the delay?`);
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+
+const SCRIPTS = {
+  priya: [
+    "Hi, this is Priya Nair, booking reference SK4821X.",
+    "I'm furious, I want a full cash refund AND a free upgrade to business class on my return flight for the trouble!"
+  ],
+  arvind: [
+    "Hi, Arvind Kulkarni here, PNR TR1190B.",
+    "This delay has made me miss an important meeting. Can I get hotel accommodation since it's been such a long delay?"
+  ],
+  meher: [
+    "Hello, Meher Kaur, PNR WL7742.",
+    "I'd like a full night's hotel stay, not just the delayed hours.",
+    "Also, can you move me to a different flight instead of waiting — I don't mind an earlier one."
+  ]
+};
+
+async function runScript(name){
+  resetSession(false);
+  addSystem(`— scripted scenario: ${name} —`);
+  for(const line of SCRIPTS[name]){
+    await new Promise(r=>setTimeout(r, 500));
+    handleTurn(line);
+    await new Promise(r=>setTimeout(r, 350));
+  }
+}
+
+function resetSession(clearThread=true){
+  state = { customer:null, booking:null, escalated:false, log:[] };
+  if(clearThread){
+    thread.innerHTML='';
+    addMsg('agent', `Hi, I'm here to help with your flight today. Could I have your name or booking reference (PNR) to pull up your details?`);
+  } else {
+    thread.innerHTML='';
+  }
+  idCard.innerHTML = `<h3>Customer</h3><div class="empty-hint">No customer identified yet. The agent will look someone up once they share a name or booking reference.</div>`;
+  flightCard.innerHTML = `<h3>Flight status</h3><div class="empty-hint">Nothing to show yet.</div>`;
+  escCard.style.display='none';
+  logList.innerHTML='';
+  logEmpty.style.display='block';
+}
+
+
+document.getElementById('sendBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('userInput');
+  if(input.value.trim()){ handleTurn(input.value); input.value=''; }
+});
+document.getElementById('userInput').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter'){ document.getElementById('sendBtn').click(); }
+});
+document.querySelectorAll('.chip[data-scn]').forEach(chip=>{
+  chip.addEventListener('click', ()=> runScript(chip.dataset.scn));
+});
+document.getElementById('resetBtn').addEventListener('click', ()=> resetSession(true));
+
+resetSession(true);
+</script>
+</body>
+</html>
